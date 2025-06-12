@@ -1,5 +1,7 @@
 ﻿using InventoryManagementSystem.DTOs;
+using InventoryManagementSystem.Models;
 using InventoryManagementSystem.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Controllers
@@ -19,7 +21,13 @@ namespace InventoryManagementSystem.Controllers
         [HttpGet]
         public async Task<ActionResult<List<CustomerDto>>> GetAll()
         {
-            return Ok(await _customerService.GetAllAsync());
+            var customers = await _customerService.GetAllAsync();
+            return Ok(new
+            {
+                success = true,
+                message = "Customers retrieved successfully.",
+                data = customers
+            });
         }
 
         [HttpGet("{id}")]
@@ -27,14 +35,24 @@ namespace InventoryManagementSystem.Controllers
         {
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null) return NotFound();
-            return Ok(customer);
+            return Ok(new
+            {
+                success = true,
+                message = "Customer retrieved successfully.",
+                data = customer
+            });
         }
 
         [HttpPost]
         public async Task<ActionResult<CustomerDto>> Create(CreateCustomerDto dto)
         {
             var customer = await _customerService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = customer.CustomerId }, customer);
+            return CreatedAtAction(nameof(GetById), new { id = customer.CustomerId }, new
+            {
+                success = true,
+                message = "Customer created successfully.",
+                data = customer
+            });
         }
     }
 

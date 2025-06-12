@@ -21,18 +21,28 @@ namespace InventoryManagementSystem.Controllers
         public async Task<ActionResult<List<ProductDto>>> GetAll()
         {
             var products = await _productService.GetAllAsync();
-            return Ok(products); // 200 with list of products
+            return Ok(new
+            {
+                success = true,
+                message = "Products retrieved successfully.",
+                data = products
+            });
         }
 
         // GET: api/Product/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> Get(int id)
+        public async Task<ActionResult<List<ProductDto>>> Get(int id)
         {
             var product = await _productService.GetByIdAsync(id);
             if (product == null)
-                return NotFound(); // 404
+                return NotFound(new { success = false, message = "Product not found." });
 
-            return Ok(product);
+            return Ok(new
+            {
+                success = true,
+                message = "Product retrieved successfully.",
+                data = product
+            });
         }
 
         // POST: api/Product
@@ -41,7 +51,12 @@ namespace InventoryManagementSystem.Controllers
         public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
         {
             var created = await _productService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = created.ProductId }, created); // 201
+            return CreatedAtAction(nameof(Get), new { id = created.ProductId }, new
+            {
+                success = true,
+                message = "Product created successfully.",
+                data = created
+            });
         }
 
         // PUT: api/Product
@@ -50,9 +65,9 @@ namespace InventoryManagementSystem.Controllers
         {
             var success = await _productService.UpdateAsync(dto);
             if (!success)
-                return NotFound(); // 404
+                return NotFound(new { success = false, message = "Product not found." });
 
-            return NoContent(); // 204
+            return NoContent();
         }
 
         // DELETE: api/Product/5
@@ -61,25 +76,26 @@ namespace InventoryManagementSystem.Controllers
         {
             var success = await _productService.DeleteAsync(id);
             if (!success)
-                return NotFound(); // 404
+                return NotFound(new { success = false, message = "Product not found." });
 
-            return NoContent(); // 204
+            return Ok(new { success = true, message = "Product deleted successfully." });
         }
 
+        // PATCH: api/Product/5/stock
         [HttpPatch("{id}/stock")]
         public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockDto dto)
         {
             if (id != dto.ProductId)
-                return BadRequest("Product ID mismatch.");
+                return BadRequest(new { success = false, message = "Product ID mismatch." });
 
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new { success = false, message = "Invalid data.", errors = ModelState });
 
             var success = await _productService.UpdateStockAsync(dto);
-            if (!success) return NotFound("Product not found.");
+            if (!success)
+                return NotFound(new { success = false, message = "Product not found." });
 
-            return Ok("Stock updated successfully.");
+            return Ok(new { success = true, message = "Stock updated successfully." });
         }
-
     }
 }
