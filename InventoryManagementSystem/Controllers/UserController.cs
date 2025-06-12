@@ -45,7 +45,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpPost]
-        public async TaskActionResult<UserDto>> Create(CreateUserDto dto)
+        public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
         {
             var createdUser = await _userService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, new
