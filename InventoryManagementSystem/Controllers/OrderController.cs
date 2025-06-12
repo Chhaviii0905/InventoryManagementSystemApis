@@ -1,6 +1,8 @@
 ﻿using InventoryManagementSystem.DTOs;
+using InventoryManagementSystem.Models;
 using InventoryManagementSystem.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Controllers
@@ -20,7 +22,12 @@ namespace InventoryManagementSystem.Controllers
         public async Task<ActionResult<List<OrderDto>>> GetAll()
         {
             var orders = await _orderService.GetAllAsync();
-            return Ok(orders);
+            return Ok(new
+            {
+                success = true,
+                message = "Orders retrieved successfully.",
+                data = orders
+            });
         }
 
         [HttpGet("{id}")]
@@ -28,7 +35,12 @@ namespace InventoryManagementSystem.Controllers
         {
             var order = await _orderService.GetByIdAsync(id);
             if (order == null) return NotFound();
-            return Ok(order);
+            return Ok(new
+            {
+                success = true,
+                message = "Order retrieved successfully.",
+                data = order
+            });
         }
 
         [HttpPost]
@@ -39,7 +51,12 @@ namespace InventoryManagementSystem.Controllers
             if (order == null)
                 return BadRequest("Invalid product or insufficient stock.");
 
-            return CreatedAtAction(nameof(GetById), new { id = order.OrderId }, order);
+            return CreatedAtAction(nameof(GetById), new { id = order.OrderId }, new
+            {
+                success = true,
+                message = "Order created successfully.",
+                data = order
+            });
         }
     }
 }

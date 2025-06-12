@@ -15,14 +15,16 @@ namespace InventoryManagementSystem.Services
             _context = context;
         }
 
-        // Hash password helper (simple SHA256 here for demo)
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password);
-            var hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
+
+        private bool VerifyPassword(string password, string hashedPassword)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+        }
+
 
         public async Task<User?> ValidateUserAsync(string username, string password)
         {
@@ -33,9 +35,12 @@ namespace InventoryManagementSystem.Services
             if (user == null)
                 return null;
 
-            var hashedInput = HashPassword(password);
+            return VerifyPassword(password, user.PasswordHash) ? user : null;
+        }
 
-            return user.PasswordHash == hashedInput ? user : null;
+        public async Task<bool> ExistsByUsernameAsync(string username)
+        {
+            return await _context.Users.AnyAsync(u => u.Username == username);
         }
 
         public async Task<List<UserDto>> GetAllAsync()

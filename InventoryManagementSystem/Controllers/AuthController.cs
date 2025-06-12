@@ -1,3 +1,4 @@
+using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Models;
 using InventoryManagementSystem.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -27,9 +28,28 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials");
 
         var token = GenerateJwtToken(user);
-        return Ok(new { token });
+        return Ok(new
+        {
+            success = true,
+            message = "Login successful.",
+            data = new { token }
+        });
     }
 
+    [HttpPost("signup")]
+    public async Task<IActionResult> Signup([FromBody] CreateUserDto dto)
+    {
+        if (await _userService.ExistsByUsernameAsync(dto.Username))
+            return BadRequest("Username already exists");
+
+        var user = await _userService.CreateAsync(dto);
+        return Ok(new
+        {
+            success = true,
+            message = "Signup successful.",
+            data = user
+        });
+    }
     private string GenerateJwtToken(User user)
     {
         var claims = new List<Claim>

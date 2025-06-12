@@ -21,41 +21,62 @@ namespace InventoryManagementSystem.Controllers
         public async Task<ActionResult<List<UserDto>>> GetAll()
         {
             var users = await _userService.GetAllAsync();
-            return Ok(users);
+            return Ok(new
+            {
+                success = true,
+                message = "Users retrieved successfully.",
+                data = users
+            });
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found." });
+
+            return Ok(new
+            {
+                success = true,
+                message = "User retrieved successfully.",
+                data = user
+            });
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
+        public async TaskActionResult<UserDto>> Create(CreateUserDto dto)
         {
             var createdUser = await _userService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
+            return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, new
+            {
+                success = true,
+                message = "User created successfully.",
+                data = createdUser
+            });
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateUserDto dto)
         {
             if (id != dto.UserId)
-                return BadRequest("User ID mismatch.");
+                return BadRequest(new { success = false, message = "User ID mismatch." });
 
             var updated = await _userService.UpdateAsync(dto);
-            if (!updated) return NotFound();
-            return NoContent();
+            if (!updated)
+                return NotFound(new { success = false, message = "User not found." });
+
+            return Ok(new { success = true, message = "User updated successfully." });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _userService.DeleteAsync(id);
-            if (!deleted) return NotFound();
-            return NoContent();
+            if (!deleted)
+                return NotFound(new { success = false, message = "User not found." });
+
+            return Ok(new { success = true, message = "User deleted successfully." });
         }
     }
 }
