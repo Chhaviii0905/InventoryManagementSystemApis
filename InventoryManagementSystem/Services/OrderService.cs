@@ -125,5 +125,39 @@ namespace InventoryManagementSystem.Services
 
             return await GetByIdAsync(order.OrderId);
         }
+
+
+
+        public async Task<bool> DeleteAsync(int id, string performedBy)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderId == id);
+
+            if (order == null)
+                return false;
+
+            // Restore stock when deleting order
+            foreach (var item in order.OrderItems)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.Quantity += item.Quantity;
+                }
+            }
+
+            _context.Orders.Remove(order);
+
+            await _logService.LogAsync(
+                action: "Order Deleted",
+                performedBy: performedBy,
+                entity: "Order",
+                entityId: order.OrderId.ToString()
+            );
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
