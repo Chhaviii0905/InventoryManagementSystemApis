@@ -50,7 +50,8 @@ namespace InventoryManagementSystem.Controllers
         [Authorize(Roles = "Admin,Manager")]
         public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
         {
-            var created = await _productService.CreateAsync(dto);
+            string performedBy = User?.Identity?.Name ?? "System";
+            var created = await _productService.CreateAsync(dto, performedBy);
             return CreatedAtAction(nameof(Get), new { id = created.ProductId }, new
             {
                 success = true,
@@ -63,7 +64,8 @@ namespace InventoryManagementSystem.Controllers
         [HttpPut]
         public async Task<IActionResult> Update(UpdateProductDto dto)
         {
-            var success = await _productService.UpdateAsync(dto);
+            string performedBy = User?.Identity?.Name ?? "System";
+            var success = await _productService.UpdateAsync(dto, performedBy);
             if (!success)
                 return NotFound(new { success = false, message = "Product not found." });
 
@@ -74,7 +76,8 @@ namespace InventoryManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _productService.DeleteAsync(id);
+            string performedBy = User?.Identity?.Name ?? "System";
+            var success = await _productService.DeleteAsync(id, performedBy);
             if (!success)
                 return NotFound(new { success = false, message = "Product not found." });
 
@@ -91,7 +94,8 @@ namespace InventoryManagementSystem.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { success = false, message = "Invalid data.", errors = ModelState });
 
-            var success = await _productService.UpdateStockAsync(dto);
+            string performedBy = User?.Identity?.Name ?? "System";
+            var success = await _productService.UpdateStockAsync(dto, performedBy);
             if (!success)
                 return NotFound(new { success = false, message = "Product not found." });
 

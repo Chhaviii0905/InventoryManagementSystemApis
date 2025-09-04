@@ -22,14 +22,28 @@ namespace InventoryManagementSystem.Services
                 Action = action,
                 PerformedBy = performedBy,
                 Entity = entity,
-                EntityId = entityId
+                EntityId = entityId,
+                Timestamp = DateTime.UtcNow
             };
 
             await _logCollection.InsertOneAsync(log);
         }
 
-        public async Task<List<ActivityLog>> GetLogsAsync() =>
-            await _logCollection.Find(_ => true).SortByDescending(l => l.Timestamp).ToListAsync();
+        public async Task<List<ActivityLog>> GetAllLogsAsync() =>
+            await _logCollection.Find(_ => true)
+                                .SortByDescending(l => l.Timestamp)
+                                .ToListAsync();
+
+        public async Task<List<ActivityLog>> GetLogsByUserAsync(string username) =>
+        await _logCollection.Find(l => l.PerformedBy == username)
+                            .SortByDescending(l => l.Timestamp)
+                            .ToListAsync();
+
+        public async Task<List<ActivityLog>> GetLogsByEntityAsync(string entity, string entityId) =>
+        await _logCollection.Find(l => l.Entity == entity && l.EntityId == entityId)
+                                .SortByDescending(l => l.Timestamp)
+                                .ToListAsync();
+
     }
 
 }
