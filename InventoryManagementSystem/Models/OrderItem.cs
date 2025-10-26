@@ -17,6 +17,9 @@ public partial class OrderItem
 
     public int Quantity { get; set; }
 
+    public decimal Rate { get; set; }
+    public decimal TotalAmount { get; set; }
+
     [ForeignKey("OrderId")]
     [InverseProperty("OrderItems")]
     public virtual Order? Order { get; set; }

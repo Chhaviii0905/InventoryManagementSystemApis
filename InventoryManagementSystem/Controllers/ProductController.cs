@@ -18,6 +18,7 @@ namespace InventoryManagementSystem.Controllers
 
         // GET: api/Product
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<ProductDto>>> GetAll()
         {
             var products = await _productService.GetAllAsync();
@@ -31,6 +32,7 @@ namespace InventoryManagementSystem.Controllers
 
         // GET: api/Product/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<List<ProductDto>>> Get(int id)
         {
             var product = await _productService.GetByIdAsync(id);
@@ -47,7 +49,7 @@ namespace InventoryManagementSystem.Controllers
 
         // POST: api/Product
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize]
         public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
         {
             string performedBy = User?.Identity?.Name ?? "System";
@@ -62,6 +64,7 @@ namespace InventoryManagementSystem.Controllers
 
         // PUT: api/Product
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update(UpdateProductDto dto)
         {
             string performedBy = User?.Identity?.Name ?? "System";
@@ -74,6 +77,7 @@ namespace InventoryManagementSystem.Controllers
 
         // DELETE: api/Product/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             string performedBy = User?.Identity?.Name ?? "System";
@@ -86,6 +90,7 @@ namespace InventoryManagementSystem.Controllers
 
         // PATCH: api/Product/5/stock
         [HttpPatch("{id}/stock")]
+        [Authorize]
         public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockDto dto)
         {
             if (id != dto.ProductId)

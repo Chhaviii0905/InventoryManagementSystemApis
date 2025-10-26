@@ -19,6 +19,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<OrderDto>>> GetAll()
         {
             var orders = await _orderService.GetAllAsync();
@@ -31,6 +32,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<OrderDto>> GetById(int id)
         {
             var order = await _orderService.GetByIdAsync(id);
@@ -44,7 +46,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Manager,Staff")]
+        [Authorize]
         public async Task<ActionResult<OrderDto>> Create(CreateOrderDto dto)
         {
             var order = await _orderService.CreateAsync(dto);
@@ -58,5 +60,29 @@ namespace InventoryManagementSystem.Controllers
                 data = order
             });
         }
+
+        [HttpGet("getRecentOrders")]
+        [Authorize]
+        public async Task<IActionResult> GetRecent([FromQuery] int count = 5)
+        {
+            var recent = await _orderService.GetRecentAsync(count);
+            
+            return Ok(new { success = true, data = recent });
+        }
+
+        [HttpPut("{id}/status")]
+        [Authorize]
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                return BadRequest(new { success = false, message = "Status is required." });
+
+            var updated = await _orderService.UpdateStatusAsync(id, status);
+            if (!updated)
+                return NotFound(new { success = false, message = "Order not found." });
+
+            return Ok(new { success = true, message = $"Order marked as {status}." });
+        }
+
     }
 }
