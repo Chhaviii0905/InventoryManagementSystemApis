@@ -2,6 +2,7 @@
 using InventoryManagementSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InventoryManagementSystem.Controllers
 {
@@ -17,7 +18,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<ActionResult<List<UserDto>>> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -30,6 +31,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<UserDto>> GetById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
@@ -45,6 +47,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create(CreateUserDto dto)
         {
             var createdUser = await _userService.CreateAsync(dto);
@@ -56,7 +59,25 @@ namespace InventoryManagementSystem.Controllers
             });
         }
 
+        [HttpGet("getCurrentUser")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            var user = await _userService.GetByIdAsync(userId);
+            if (user == null) return NotFound(new { success = false, message = "User not found." });
+
+            return Ok(new { success = true, data = user });
+        }
+
+
+
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, UpdateUserDto dto)
         {
             if (id != dto.UserId)
@@ -70,6 +91,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _userService.DeleteAsync(id);

@@ -11,8 +11,10 @@ public partial class Order
 
     public int? CustomerId { get; set; }
 
-    [Column(TypeName = "timestamp")]
+    [Column(TypeName = "timestamp with time zone")]
     public DateTime? OrderDate { get; set; }
+
+    public string Status { get; set; } = "Pending";
 
     [ForeignKey("UserId")]
     [InverseProperty("Orders")]

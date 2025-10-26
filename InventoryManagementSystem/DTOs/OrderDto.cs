@@ -6,6 +6,7 @@
         public DateTime? OrderDate { get; set; }
         public int? UserId { get; set; }
         public string? UserName { get; set; }
+        public string Status { get; set; } = "Pending";
 
         public int? CustomerId { get; set; }
         public string? CustomerName { get; set; }

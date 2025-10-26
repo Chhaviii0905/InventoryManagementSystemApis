@@ -1,6 +1,7 @@
 ﻿using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Models;
 using InventoryManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<CustomerDto>>> GetAll()
         {
             var customers = await _customerService.GetAllAsync();
@@ -31,6 +33,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<CustomerDto>> GetById(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
@@ -44,6 +47,7 @@ namespace InventoryManagementSystem.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<CustomerDto>> Create(CreateCustomerDto dto)
         {
             var customer = await _customerService.CreateAsync(dto);

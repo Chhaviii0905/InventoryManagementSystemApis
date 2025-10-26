@@ -23,12 +23,13 @@ namespace InventoryManagementSystem.Services
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .Include(o => o.User)
-                .Include(o => o.Customer) // 👈 Include customer
+                .Include(o => o.Customer)
                 .Select(o => new OrderDto
                 {
                     OrderId = o.OrderId,
                     OrderDate = (DateTime)o.OrderDate,
                     UserId = o.UserId,
+                    Status = o.Status,
                     UserName = o.User != null ? o.User.Username : null,
                     CustomerId = o.CustomerId,
                     CustomerName = o.Customer != null ? o.Customer.Name : null,
@@ -37,11 +38,38 @@ namespace InventoryManagementSystem.Services
                         OrderItemId = oi.OrderItemId,
                         ProductId = (int)oi.ProductId,
                         ProductName = oi.Product.Name,
-                        Quantity = oi.Quantity
+                        Quantity = oi.Quantity,
+                        Rate = oi.Product.Price,
+                        TotalAmount = oi.Quantity * oi.Product.Price
                     }).ToList()
                 }).ToListAsync();
         }
 
+        public async Task<List<RecentOrderDto>> GetRecentAsync(int count = 5)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Customer)
+                .OrderByDescending(o => o.OrderDate ?? DateTime.MinValue)
+                .Take(count)
+                .Select(o => new RecentOrderDto
+                {
+                    OrderId = o.OrderId,
+                    Status = o.Status,
+                    ItemsCount = o.OrderItems.Count,
+                    OrderDate = o.OrderDate,
+                    CustomerName = o.Customer != null ? o.Customer.Name : null,
+                    Items = o.OrderItems.Select(oi => new OrderItemDto
+                    {
+                        OrderItemId = oi.OrderItemId,
+                        ProductId = (int)oi.ProductId,
+                        ProductName = oi.Product != null ? oi.Product.Name : string.Empty,
+                        Quantity = oi.Quantity
+                    }).ToList()
+                })
+                .ToListAsync();
+        }
         public async Task<OrderDto?> GetByIdAsync(int id)
         {
             var order = await _context.Orders
@@ -92,7 +120,7 @@ namespace InventoryManagementSystem.Services
             if (user == null)
                 throw new ArgumentException($"User with ID {dto.UserId} does not exist.");
 
-            var customer = await _context.Customers.FindAsync(dto.CustomerId); // 👈 Validate customer
+            var customer = await _context.Customers.FindAsync(dto.CustomerId);
             if (customer == null)
                 throw new ArgumentException($"Customer with ID {dto.CustomerId} does not exist.");
 
@@ -100,7 +128,7 @@ namespace InventoryManagementSystem.Services
             {
                 OrderDate = DateTime.UtcNow,
                 UserId = dto.UserId,
-                CustomerId = dto.CustomerId, // 👈 Add CustomerId
+                CustomerId = dto.CustomerId, 
                 OrderItems = dto.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
@@ -125,5 +153,50 @@ namespace InventoryManagementSystem.Services
 
             return await GetByIdAsync(order.OrderId);
         }
+
+
+
+        public async Task<bool> DeleteAsync(int id, string performedBy)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderId == id);
+
+            if (order == null)
+                return false;
+
+            // Restore stock when deleting order
+            foreach (var item in order.OrderItems)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.Quantity += item.Quantity;
+                }
+            }
+
+            _context.Orders.Remove(order);
+
+            await _logService.LogAsync(
+                action: "Order Deleted",
+                performedBy: performedBy,
+                entity: "Order",
+                entityId: order.OrderId.ToString()
+            );
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateStatusAsync(int id, string newStatus)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return false;
+
+            order.Status = newStatus;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }
