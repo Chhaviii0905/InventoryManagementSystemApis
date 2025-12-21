@@ -1,7 +1,9 @@
 version: '3.9'
+
 services:
   postgres:
     image: postgres:latest
+    container_name: inventory-postgres
     environment:
       POSTGRES_DB: InventoryDB
       POSTGRES_USER: postgres
@@ -13,6 +15,7 @@ services:
 
   mongo:
     image: mongo:latest
+    container_name: inventory-mongo
     ports:
       - "27017:27017"
     volumes:
@@ -20,17 +23,26 @@ services:
 
   backend:
     build: .
+    container_name: inventory-backend
     ports:
       - "5000:80"
     depends_on:
       - postgres
       - mongo
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"  # Optional, you can use Production too
+      ASPNETCORE_ENVIRONMENT: "Development"  # Change to Production if needed
       ConnectionStrings__PostgresConnection: "Host=postgres;Port=5432;Database=InventoryDB;Username=postgres;Password=Chhavi"
       MongoDb__ConnectionString: "mongodb://mongo:27017"
       MongoDb__DatabaseName: "InventoryLogs"
-      Jwt__Key: "your-docker-secret-key"
+      Jwt__Key: "your-very-strong-longer-secret-key-here-32-bytes-min"
+    command: >
+      sh -c "
+      until pg_isready -h postgres -p 5432; do
+        echo 'Waiting for Postgres...';
+        sleep 2;
+      done;
+      dotnet InventoryManagementSystem.dll
+      "
 
 volumes:
   postgres-data:
