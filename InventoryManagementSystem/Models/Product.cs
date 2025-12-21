@@ -19,7 +19,7 @@ public partial class Product
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Price { get; set; }
 
-    [Column(TypeName = "timestamp")]
+    [Column(TypeName = "timestamp with time zone")]
     public DateTime? CreatedAt { get; set; }
 
     [InverseProperty("Product")]

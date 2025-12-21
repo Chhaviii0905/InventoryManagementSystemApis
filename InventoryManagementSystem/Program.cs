@@ -8,7 +8,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -77,11 +76,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// **IMPORTANT: Add Authentication middleware before Authorization**
 
-app.UseAuthentication();  // <-- This enables authentication middleware
-app.UseAuthorization();   // <-- This enables authorization middleware
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
