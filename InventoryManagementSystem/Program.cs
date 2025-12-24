@@ -83,7 +83,24 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-    context.Database.Migrate();
+
+    var retryCount = 0;
+    const int maxRetries = 10;
+
+    while (retryCount < maxRetries)
+    {
+        try
+        {
+            context.Database.Migrate();
+            break; // success
+        }
+        catch (Exception ex)
+        {
+            retryCount++;
+            Console.WriteLine($"Database not ready yet, retry {retryCount}/{maxRetries}");
+            Thread.Sleep(3000);
+        }
+    }
 }
 
 using (var scope = app.Services.CreateScope())
