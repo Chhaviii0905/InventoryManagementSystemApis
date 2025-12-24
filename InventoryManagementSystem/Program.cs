@@ -92,7 +92,7 @@ using (var scope = app.Services.CreateScope())
         try
         {
             context.Database.Migrate();
-            break; // success
+            break;
         }
         catch (Exception ex)
         {
