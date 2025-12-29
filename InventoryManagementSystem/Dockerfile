@@ -16,6 +16,6 @@ WORKDIR /app
 
 COPY --from=build /app/out .
 
-EXPOSE 80
+EXPOSE 7124
 
 ENTRYPOINT ["dotnet", "InventoryManagementSystem.dll"]
