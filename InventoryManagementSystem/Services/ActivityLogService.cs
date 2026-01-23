@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace InventoryManagementSystem.Services
 {
-    public class ActivityLogService
+    public class ActivityLogService 
     {
         private readonly IMongoCollection<ActivityLog> _logCollection;
 
