@@ -24,12 +24,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build backend Docker image
+      - name: Build and push backend Docker image
         run: |
           docker build \
-            -t ghcr.io/Chhaviii0905/storease-backend:latest \
+            -t ghcr.io/chhaviii0905/inventorymanagementsystemapis:latest \
             .
-
-      - name: Push backend Docker image
-        run: |
-          docker push ghcr.io/Chhaviii0905/storease-backend:latest
+          docker push ghcr.io/chhaviii0905/inventorymanagementsystemapis:latest
