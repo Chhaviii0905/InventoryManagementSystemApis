@@ -81,34 +81,45 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
-using (var scope = app.Services.CreateScope())
+
+var runDbInit = Environment.GetEnvironmentVariable("RUN_DB_INIT") == "true";
+
+if (runDbInit)
 {
-    var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-
-    var retryCount = 0;
-    const int maxRetries = 10;
-
-    while (retryCount < maxRetries)
+    using (var scope = app.Services.CreateScope())
     {
-        try
+        var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+
+        var retryCount = 0;
+        const int maxRetries = 10;
+
+        while (retryCount < maxRetries)
         {
-            context.Database.Migrate();
-            break;
-        }
-        catch (Exception ex)
-        {
-            retryCount++;
-            Console.WriteLine($"Database not ready yet, retry {retryCount}/{maxRetries}");
-            Thread.Sleep(3000);
+            try
+            {
+                context.Database.Migrate();
+                break;
+            }
+            catch
+            {
+                retryCount++;
+                Console.WriteLine($"Database not ready yet, retry {retryCount}/{maxRetries}");
+                Thread.Sleep(3000);
+            }
         }
     }
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+        await seeder.SeedAsync();
+    }
+}
+else
+{
+    Console.WriteLine("DB migration & seeding skipped (RUN_DB_INIT not enabled).");
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
-    await seeder.SeedAsync();
-}
 
 
 app.Run();
